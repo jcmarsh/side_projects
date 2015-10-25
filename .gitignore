@@ -33,3 +33,6 @@
 
 # Emacs backups
 *~
+
+*.pyc
+

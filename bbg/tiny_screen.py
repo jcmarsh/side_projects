@@ -2,7 +2,7 @@ from Adafruit_I2C import Adafruit_I2C
 import time
 import math
 import subprocess
-from evdev import InputDevice, categorize, ecodes
+import keys
  
 Oled = Adafruit_I2C(0x3c)
 Command_Mode=0x80
@@ -204,8 +204,19 @@ def advance_row():
     c_row = c_row + 1
     c_col = 0
     
-    oled_setTextXY(c_row,c_col)
+    if c_row > 12:
+        c_row = 0
+        oled_clearDisplay()
     
+    oled_setTextXY(c_row,c_col)
+
+def advance_col():
+    global c_row
+    global c_col
+    c_col = c_col + 1
+    
+    if c_col > 12:
+        advance_row()
     
 def oled_putChar(C):
     C_add=ord(C)
@@ -217,6 +228,8 @@ def oled_putChar(C):
         C=' '
         C_add=ord(C)
  
+    advance_col()
+    
     for i in range(0,8,2):
         for j in range(0,8):
             c=0x00
@@ -234,10 +247,7 @@ def oled_putChar(C):
  
 def oled_putString(String):
     for i in range(len(String)):
-        oled_putChar(String[i])   
- 
-dev = InputDevice('/dev/input/event1')
-print(dev)
+        oled_putChar(String[i])
 
 if __name__=="__main__":
     oled_init()
@@ -247,17 +257,14 @@ if __name__=="__main__":
     oled_setTextXY(0,0)
     oled_putString("Hello World\n")
     
+    keys.setup_keyboard()
+    
     #oled_putString(call(["ls", "-l"]))
     
     #oled_putString(subprocess.Popen("cat `ls`", shell=True, stdout=subprocess.PIPE).stdout.read() + "\n")
     
     #oled_putString("This is my happy program which hopefully works well.\n")
     #oled_putString("Here is\nthe break")
-    
-    for event in dev.read_loop():
-        if event.type == ecodes.EV_KEY:
-            print(categorize(event).keycode)
-            oled_putString(categorize(event).keycode)
         
     #while True:
     #    words = raw_input("")
